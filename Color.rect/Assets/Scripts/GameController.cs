@@ -43,6 +43,19 @@ public class GameController : MonoBehaviour {
         LoadScore();
     }
 
+    private void OnApplicationQuit()
+    {
+        SaveScore();
+    }
+
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause)
+        {
+            SaveScore();
+        }
+    }
+
     #region Event Callbacks
 
     public static void OnPlayerDiedEvent()
@@ -113,6 +126,7 @@ public class GameController : MonoBehaviour {
     void SaveScore()
     {
         PlayerPrefs.SetInt("Highscore", highScore);
+        PlayerPrefs.Save();
     }
 
     void LoadScore()
