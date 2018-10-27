@@ -545,6 +545,7 @@ GameObject:
   - component: {fileID: 372243728}
   - component: {fileID: 372243730}
   - component: {fileID: 372243731}
+  - component: {fileID: 372243732}
   m_Layer: 0
   m_Name: Controllers
   m_TagString: Untagged
@@ -594,7 +595,7 @@ MonoBehaviour:
   score: 0
   highScore: 0
   gameStarted: 0
-  inMenu: 1
+  inStartMenu: 1
 --- !u!114 &372243731
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -611,6 +612,18 @@ MonoBehaviour:
   scoreText: {fileID: 0}
   highScoreText: {fileID: 0}
   sceneCanvasAnim: {fileID: 0}
+--- !u!114 &372243732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 372243727}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c966b2fde3fecf6458d136539529382d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  chanceOfAd: 100
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -1136,7 +1149,7 @@ MonoBehaviour:
     m_MinSize: 10
     m_MaxSize: 300
     m_Alignment: 4
-    m_AlignByGeometry: 1
+    m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0

@@ -89,6 +89,9 @@ public class GameController : MonoBehaviour {
 
         Debug.Log("Player died.");
 
+        // When the player dies, show an advertisement.
+        AdController.Instance.ShowAd();
+
         // Play end screen animation.
         UIController.Instance.SceneCanvasTrigger("PlayerDied");
 
