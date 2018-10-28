@@ -22,14 +22,19 @@ public class AdController : MonoBehaviour {
         }
     }
 
+    private void Start()
+    {
+        // Subscribe methods to events.
+        EventController.ShowAdEvent += ShowAd;
+    }
+
     public void ShowAd()
     {
         bool showAd = CalculateAdChance();
 
+        // If a "video" advertisement is ready, show it.
         if (showAd && Advertisement.IsReady("video"))
         {
-            Debug.Log("Showing video ad.");
-
             Advertisement.Show("video", new ShowOptions() { resultCallback = HandleAdResult });
         }
     }

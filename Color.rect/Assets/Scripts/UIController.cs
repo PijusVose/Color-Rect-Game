@@ -44,6 +44,10 @@ public class UIController : MonoBehaviour {
         {
             Debug.LogWarning("SceneCanvas has not been found.");
         }
+
+        EventController.UpdateScoreEvent += UpdateScore;
+        EventController.UpdateHighScoreEvent += UpdateHighScore;
+        EventController.CanvasTriggerEvent += SceneCanvasTrigger;
     }
 
     public void OnPlayAgainPressed()

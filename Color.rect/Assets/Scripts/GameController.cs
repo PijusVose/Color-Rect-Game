@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
@@ -6,17 +7,19 @@ public class GameController : MonoBehaviour {
 
     public static GameController Instance { get; set; }
 
-    // Delegates and events.
-    public delegate void GeneralEventHandler();
-    public static event GeneralEventHandler PlayerDiedEvent;
-    public static event GeneralEventHandler AddScoreEvent;
-    public static event GeneralEventHandler RestartLevelEvent;
+    public enum State
+    {
+        START,
+        PLAYING,
+        PAUSE,
+        LOST,
+        TRANSITION
+    }
 
     public Text scoreText;
     public int score = 0;
     public int highScore = 0;
-    public bool gameStarted = false;
-    public bool inStartMenu = true;  
+    public State state;
 
     private void Awake()
     {
@@ -34,10 +37,14 @@ public class GameController : MonoBehaviour {
 
     private void Start()
     {
+        // Set the state.
+        state = State.START;
+
         // Subscribe the functions to events.
-        PlayerDiedEvent += OnPlayerDied;
-        AddScoreEvent += AddScore;
-        RestartLevelEvent += RestartLevel;
+        EventController.PlayerDiedEvent += OnPlayerDied;
+        EventController.RestartLevelEvent += RestartLevel;
+        EventController.AddScoreEvent += AddScore;
+        EventController.StartGameEvent += StartGame;
 
         // Load the highscore.
         LoadScore();
@@ -52,55 +59,40 @@ public class GameController : MonoBehaviour {
     {
         if (pause)
         {
+            PauseLevel();
+
             SaveScore();
         }
     }
 
-    #region Event Callbacks
-
-    public static void OnPlayerDiedEvent()
-    {
-        PlayerDiedEvent();
-    }
-
-    public static void OnAddScoreEvent()
-    {
-        AddScoreEvent();
-    }
-
-    public static void OnRestartLevelEvent()
-    {
-        RestartLevelEvent();
-    }
-
-    #endregion
-
     public void StartGame()
     {
-        if (inStartMenu == false)
-        {
-            gameStarted = true;
-        }
+        ShapeController.Instance.SpawnInitialShapes();
+
+        state = State.PLAYING;
     }
 
     public void OnPlayerDied()
     {
-        gameStarted = false;
+        if (state == State.PLAYING)
+        {
+            state = State.LOST;
 
-        Debug.Log("Player died.");
+            Debug.Log("Player died.");
 
-        // When the player dies, show an advertisement.
-        AdController.Instance.ShowAd();
+            // When the player dies, show an advertisement.
+            EventController.OnShowAdEvent();
 
-        // Play end screen animation.
-        UIController.Instance.SceneCanvasTrigger("PlayerDied");
+            // Play end screen animation.
+            EventController.OnCanvasTriggerEvent("PlayerDied");
 
-        // Set the highscore and save it.
-        highScore = score > highScore ? score : highScore;
-        SaveScore();
+            // Set the highscore and save it.
+            highScore = score > highScore ? score : highScore;
+            SaveScore();
 
-        // Update the UI.
-        UIController.Instance.UpdateHighScore(highScore);
+            // Update the UI.
+            EventController.OnUpdateHighScoreEvent(highScore);
+        }
     }
 
     public void AddScore()
@@ -108,7 +100,7 @@ public class GameController : MonoBehaviour {
         // Increase score by 1.
         score++;
 
-        UIController.Instance.UpdateScore(score);
+        EventController.OnUpdateScoreEvent(score);
     }
 
     // Reload scene.
@@ -117,12 +109,42 @@ public class GameController : MonoBehaviour {
         // Reset score.
         score = 0;
 
-        string currentScene = SceneManager.GetActiveScene().name;
-        SceneManager.LoadScene(currentScene);
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        StartCoroutine(LoadScene(currentSceneName));
+    }
+
+    IEnumerator LoadScene(string sceneName)
+    {
+        AsyncOperation asyncSceneLoad = SceneManager.LoadSceneAsync(sceneName);
+
+        yield return new WaitUntil(() => asyncSceneLoad.isDone == true);
 
         // Play end screen animation and update UI.
-        UIController.Instance.SceneCanvasTrigger("RestartGame");
-        UIController.Instance.UpdateScore(score);
+        EventController.OnCanvasTriggerEvent("RestartGame");
+        EventController.OnUpdateScoreEvent(score);
+        EventController.OnStartGameEvent();
+
+        Debug.Log("Scene was restarted.");
+    }
+
+    public void PauseLevel()
+    {
+        if (state == State.PLAYING)
+        {
+            state = State.PAUSE;
+
+            EventController.OnCanvasTriggerEvent("PauseGame");
+        }
+    }
+
+    public void ResumeLevel()
+    {
+        if (state == State.PAUSE)
+        {
+            state = State.PLAYING;
+
+            EventController.OnCanvasTriggerEvent("ResumeGame");
+        }
     }
 
     // Saves the highscore.

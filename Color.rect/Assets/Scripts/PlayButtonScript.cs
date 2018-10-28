@@ -9,14 +9,12 @@ public class PlayButtonScript : MonoBehaviour {
     {
         if (type == "restart")
         {
-            GameController.Instance.RestartLevel();
+            EventController.OnRestartLevelEvent();
         }
         else if(type == "play")
         {
-            UIController.Instance.SceneCanvasTrigger("StartGame");
-
-            GameController.Instance.inStartMenu = false;
-            GameController.Instance.StartGame();
+            EventController.OnCanvasTriggerEvent("StartGame");
+            EventController.OnStartGameEvent();
         }
     }
 }

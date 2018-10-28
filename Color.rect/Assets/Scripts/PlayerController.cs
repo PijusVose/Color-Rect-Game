@@ -7,7 +7,7 @@ public class PlayerController : MonoBehaviour {
     // Update is called once per frame
     void Update ()
     {
-        if (GameController.Instance.gameStarted == true)
+        if (GameController.Instance.state == GameController.State.PLAYING)
         {
             SpriteRenderer renderer = GetComponent<SpriteRenderer>();
             float playerRight = transform.position.x + renderer.bounds.extents.x; // The right edge of the sprite.
@@ -17,7 +17,7 @@ public class PlayerController : MonoBehaviour {
             RaycastHit2D hit = Physics2D.Raycast(new Vector2(playerRight, transform.position.y), -Vector2.up);
 
             // Check if the player even collides with a shape.
-            if (hit.collider != null && hit.collider.tag == "Shape")
+            if (hit.collider != null && hit.collider.tag == "Shape" && ShapeController.Instance.shapesLoaded)
             {
                 hit.collider.tag = "Untagged";
 
@@ -29,16 +29,16 @@ public class PlayerController : MonoBehaviour {
                 // Check if player fits in the shape.
                 if (playerTop > shapeTop || playerBottom < shapeBottom)
                 {
-                    GameController.OnPlayerDiedEvent(); // End Game.
+                    EventController.OnPlayerDiedEvent(); // End Game.
                 }
                 else
                 {
-                    GameController.OnAddScoreEvent(); // Add score.
+                    EventController.OnAddScoreEvent(); // Add score.
                 }
             }
             else if (hit.collider == null)
             {
-                GameController.OnPlayerDiedEvent();
+                EventController.OnPlayerDiedEvent();
             }
         }
     }

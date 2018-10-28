@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class ShapeController : MonoBehaviour {
 
+    public static ShapeController Instance { get; set; }
+
     public Camera mainCamera;
     public Transform cameraTransform;
 
@@ -27,8 +29,24 @@ public class ShapeController : MonoBehaviour {
     private Transform lastShape; // Last shape that was created.
     private Transform endShape; // Last shape at the left.
 
-	// Use this for initialization
-	void Start ()
+    public bool shapesLoaded = false;
+
+    private void Awake()
+    {
+        // Initialize singleton.
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    // Use this for initialization
+    void Start ()
     {
         mainCamera = FindObjectOfType<Camera>();
 
@@ -43,22 +61,31 @@ public class ShapeController : MonoBehaviour {
             Debug.LogWarning("Camera has not been found.");
         }
 
-        // Spawn some shapes at the beggining.
-        for (int s = 0; s < maxShapes; s++)
-        {
-            SpawnShape();
-        }
-
-        GameController.Instance.StartGame();
+        // Subscribe to events.
+        EventController.LoadShapesEvent += SpawnInitialShapes;
     }
 	
 	// Update is called once per frame
 	void Update ()
     {
         // Move the camera forward.
-        if (GameController.Instance.gameStarted == true)
+        if (GameController.Instance.state == GameController.State.PLAYING)
         {
+            if (cameraTransform == null)
+            {
+                cameraTransform = Camera.main.transform;
+            }
+
+            // Move the camera forward. This should actually not be in this controller, but it's a simple command so there's not much point of moving this.
             cameraTransform.position = cameraTransform.position + new Vector3(currentSpeed * Time.deltaTime, 0, 0);
+
+            // Increase speed.
+            currentSpeed += acceleration * Time.deltaTime;
+            currentSpeed = Mathf.Clamp(currentSpeed, 0f, maxSpeed);
+
+            // Reduce max shape height.
+            currentMaxHeight -= downSizeAcceleration * Time.deltaTime;
+            currentMaxHeight = Mathf.Clamp(currentMaxHeight, minHeight, initialMaxHeight);
         }
 
         // Spawn a new shape if the end shape reaches the X limits.
@@ -66,14 +93,37 @@ public class ShapeController : MonoBehaviour {
         {
             SpawnShape();
         }
+    }
 
-        // Increase speed.
-        currentSpeed += acceleration * Time.deltaTime;
-        currentSpeed = Mathf.Clamp(currentSpeed, 0f, maxSpeed);
+    public void SpawnInitialShapes()
+    {
+        if (shapeFolder == null)
+        {
+            shapeFolder = GameObject.Find("Shapes").transform;
+        }
+        else
+        {
+            // Destroy any shapes in the folder.
+            for (int s = 0; s < shapeFolder.childCount; s++)
+            {
+                Destroy(shapeFolder.GetChild(s).gameObject);
+            }
+        }
 
-        // Reduce max shape height.
-        currentMaxHeight -= downSizeAcceleration * Time.deltaTime;
-        currentMaxHeight = Mathf.Clamp(currentMaxHeight, minHeight, initialMaxHeight);
+        // Reset the shape list.
+        shapes.Clear();
+
+        // Reset variables.
+        currentSpeed = initialSpeed;
+        currentMaxHeight = initialMaxHeight;
+
+        // Spawn some shapes at the beggining.
+        for (int s = 0; s < maxShapes; s++)
+        {
+            SpawnShape();
+        }
+
+        shapesLoaded = true;
     }
 
     Transform CreateShape()
