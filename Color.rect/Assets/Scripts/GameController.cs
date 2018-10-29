@@ -37,6 +37,9 @@ public class GameController : MonoBehaviour {
 
     private void Start()
     {
+        // Set the frame rate to 60fps.
+        Application.targetFrameRate = 60;
+
         // Set the state.
         state = State.START;
 

@@ -25,6 +25,8 @@ public class ShapeController : MonoBehaviour {
     public float shapeLimits = 10f; // The smallest x of shape before it is respawned.
     public float minHeight = 1.5f;
     public float minWidth = 1.2f;
+    public float minPositionY = 2f;
+    public float maxPositionY = 5f;
 
     private Transform lastShape; // Last shape that was created.
     private Transform endShape; // Last shape at the left.
@@ -92,6 +94,20 @@ public class ShapeController : MonoBehaviour {
         if (endShape != null && endShape.position.x < cameraTransform.position.x - shapeLimits)
         {
             SpawnShape();
+        }
+    }
+
+    void CalculateMaxHeight()
+    {
+        Camera mainCamera = Camera.main;
+        if (mainCamera != null)
+        {
+            // Get camera height and multiply by 90%.
+            float screenHeight = 2f * mainCamera.orthographicSize;
+            screenHeight *= 0.9f;
+
+            // Set the new max height according to the 90% of the camera height.
+            maxPositionY = screenHeight;
         }
     }
 
@@ -166,7 +182,7 @@ public class ShapeController : MonoBehaviour {
             if (lastShape != null)
             {
                 SpriteRenderer lastRenderer = lastShape.GetComponent<SpriteRenderer>(); // Get the renderer of the last shape.
-                Vector3 shapePosition = new Vector3(lastShape.position.x + (lastRenderer.size.x / 2f) + (renderer.size.x / 2f) - 0.026f, Random.Range(-5f, 5f), 0f); // Place the shape after the last shape.
+                Vector3 shapePosition = new Vector3(lastShape.position.x + (lastRenderer.size.x / 2f) + (renderer.size.x / 2f) - 0.026f, Random.Range(-maxPositionY, maxPositionY), 0f); // Place the shape after the last shape.
 
                 // If the position Y is close or at the center, change the Y to be further away from the center.
                 if (shapePosition.y < 2f && shapePosition.y > 0f)
